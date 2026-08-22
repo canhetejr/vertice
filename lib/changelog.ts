@@ -51,6 +51,19 @@ export type ChangelogEntrada = {
 
 export const CHANGELOG: ChangelogEntrada[] = [
   {
+    id: 'convite-instalacao-sem-bloqueio-auth',
+    versao: '0.26.18',
+    publico: 'equipe',
+    data: '2026-08-22',
+    titulo: 'Convite de instalação não interrompe mais o acesso',
+    resumo: 'O convite para instalar o Vértice deixou de aparecer nas telas de autenticação e só é oferecido após a primeira rolagem na página inicial.',
+    categorias: ['Conta', 'Qualidade'],
+    itens: [
+      'Login, cadastro e recuperação de senha permanecem livres de sobreposições de instalação',
+      'Na página inicial, o convite é apresentado depois da primeira rolagem',
+    ],
+  },
+  {
     id: 'referencia-kanban-desacoplada-build',
     versao: '0.26.17',
     publico: 'gestao',
