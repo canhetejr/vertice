@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Download, X } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
+import { deveExibirConviteInstalacao } from '@/lib/pwa-instalacao'
 
 // O evento não está no lib.dom padrão — é específico dos browsers Chromium.
 type PromptDeInstalacao = Event & {
@@ -24,8 +26,17 @@ const CHAVE_DISPENSADO = 'vertice:instalacao-dispensada'
  * Não renderiza nada quando o app já está instalado (`display-mode: standalone`).
  */
 export function ConviteDeInstalacao() {
+  const pathname = usePathname()
   const [evento, setEvento] = useState<PromptDeInstalacao | null>(null)
-  const [visivel, setVisivel] = useState(false)
+  const rolouNaLanding = useSyncExternalStore(
+    (notificar) => {
+      window.addEventListener('scroll', notificar, { passive: true })
+      return () => window.removeEventListener('scroll', notificar)
+    },
+    () => window.scrollY > 0,
+    () => false
+  )
+  const visivel = evento !== null && deveExibirConviteInstalacao(pathname, rolouNaLanding)
 
   useEffect(() => {
     if (localStorage.getItem(CHAVE_DISPENSADO)) return
@@ -35,11 +46,10 @@ export function ConviteDeInstalacao() {
       // Sem preventDefault o Chrome mostra o próprio banner e este some.
       e.preventDefault()
       setEvento(e as PromptDeInstalacao)
-      setVisivel(true)
     }
     window.addEventListener('beforeinstallprompt', capturar)
 
-    const instalado = () => setVisivel(false)
+    const instalado = () => setEvento(null)
     window.addEventListener('appinstalled', instalado)
 
     return () => {
@@ -50,7 +60,7 @@ export function ConviteDeInstalacao() {
 
   function dispensar() {
     localStorage.setItem(CHAVE_DISPENSADO, '1')
-    setVisivel(false)
+    setEvento(null)
   }
 
   async function instalar() {
@@ -59,7 +69,6 @@ export function ConviteDeInstalacao() {
     const { outcome } = await evento.userChoice
     // O evento é de uso único: depois de consumido não dá para chamar de novo.
     setEvento(null)
-    setVisivel(false)
     if (outcome === 'dismissed') localStorage.setItem(CHAVE_DISPENSADO, '1')
   }
 
